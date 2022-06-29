@@ -36,7 +36,7 @@ function problemA () {
    */
 
   // callback version
-  async.each(['poem-two/stanza-01.txt', 'poem-two/stanza-02.txt'],
+/*   async.each(['poem-two/stanza-01.txt', 'poem-two/stanza-02.txt'],
     function (filename, eachDone) {
       readFile(filename, function (err, stanza) {
         console.log('-- A. callback version --');
@@ -47,11 +47,15 @@ function problemA () {
     function (err) {
       console.log('-- A. callback version done --');
     }
-  );
+  ); */
 
   // promise version
-  // ???
-
+  const promesa1 = promisifiedReadFile('poem-two/stanza-01.txt')
+    .then(stanza1 => blue(stanza1));
+  const promesa2 = promisifiedReadFile('poem-two/stanza-02.txt')
+    .then(stanza2 => blue(stanza2));
+  Promise.all([promesa1,promesa2])
+  .then(() => console.log('done'))
 }
 
 function problemB () {
@@ -69,7 +73,7 @@ function problemB () {
   });
 
   // callback version
-  async.each(filenames,
+/*   async.each(filenames,
     function (filename, eachDone) {
       readFile(filename, function (err, stanza) {
         console.log('-- B. callback version --');
@@ -80,11 +84,12 @@ function problemB () {
     function (err) {
       console.log('-- B. callback version done --');
     }
-  );
+  ); */
 
   // promise version
-  // ???
-
+  let promiseArray = filenames.map(file => promisifiedReadFile(file).then(stanza => blue(stanza)))
+  Promise.all(promiseArray)
+  .then( () => console.log('done'))
 }
 
 function problemC () {
@@ -103,7 +108,7 @@ function problemC () {
   });
 
   // callback version
-  async.eachSeries(filenames,
+/*   async.eachSeries(filenames,
     function (filename, eachDone) {
       readFile(filename, function (err, stanza) {
         console.log('-- C. callback version --');
@@ -114,11 +119,20 @@ function problemC () {
     function (err) {
       console.log('-- C. callback version done --');
     }
-  );
+  ); */
 
   // promise version
-  // ???
-
+  for (let i=1, p = promisifiedReadFile(filenames[0]); i<=filenames.length; i++){
+    p = p.then(stanza => {
+    blue(stanza)
+      if (i === filenames.length){
+        console.log('done')
+      }
+      else{
+        return promisifiedReadFile(filenames[i])
+      }
+    })
+  }
 }
 
 function problemD () {
@@ -155,7 +169,18 @@ function problemD () {
   );
 
   // promise version
-  // ???
+  for (let i=1, p = promisifiedReadFile(filenames[0]); i<=filenames.length; i++){
+    p = p.then(stanza => {
+    blue(stanza)
+      if (i === filenames.length){
+        console.log('done')
+        p.catch(error => magenta(new Error(error)))
+      }
+      else{
+        return promisifiedReadFile(filenames[i])
+      }
+    })
+  }
 
 }
 
