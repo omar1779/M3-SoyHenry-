@@ -1,5 +1,6 @@
 var http = require('http');
 var fs   = require('fs');
+const { encode } = require('punycode');
 
 var beatles=[{
   name: "John Lennon",
@@ -22,3 +23,28 @@ var beatles=[{
   profilePic:"http://cp91279.biography.com/BIO_Bio-Shorts_0_Ringo-Starr_SF_HD_768x432-16x9.jpg"
 }
 ]
+
+http
+  .createServer((request,response) =>{
+    if (request.url === '/api'|| request.url === '/api/'){
+      response.writeHead(200 ,{'content-type':'aplication-json'})
+      response.end(JSON.stringify(beatles))
+    }
+    if (request.url.substring(0,5) === '/api/' && request.url.length > 5){
+      let findBeatle = request.url.split('/').pop();
+      let foundBeatle = beatles.find((b) => findBeatle === encodeURI(b.name));
+      if(foundBeatle){
+        response.writeHead(200 ,{'content-type':'aplication-json'})
+        response.end(JSON.stringify(foundBeatle))
+      }
+      else{
+        response.writeHead(404 ,{'content-type': 'text-plain'})
+        response.end('No existe ese Beatle.')
+      }
+    }
+    if( request.url === '/'){
+      response.writeHead(200, {'content-type':'text/html'})
+      const index = fs.readFileSync(`${__dirname}/index.html`)
+      response.end(index)
+    }
+  }).listen(3000 , '127.0.0.1')
