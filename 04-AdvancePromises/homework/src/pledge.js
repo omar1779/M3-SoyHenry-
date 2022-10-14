@@ -9,19 +9,43 @@ let $Promise = function (executor){
         throw new TypeError ('executor function')
     }
     this._state = 'pending',
+    this._handlerGroups = [],
     executor (this._internalResolve.bind(this),this._internalReject.bind(this))
 };
 $Promise.prototype._internalResolve = function (data){
     if (this._state === 'pending'){
         this._state = 'fulfilled',
         this._value = data
+        this._callHandlers()
     };
-}
+};
 $Promise.prototype._internalReject = function (reason){
     if(this._state === 'pending'){
         this._state = 'rejected',
         this._value = reason
+        this._callHandlers()
     };
+};
+$Promise.prototype.then = function (successCb ,errorCb){
+    if(typeof successCb !== 'function')successCb = false;
+    if(typeof errorCb !== 'function')errorCb = false;
+    this._handlerGroups.push({
+        successCb : successCb,
+        errorCb : errorCb
+    });
+    if(this._state !== 'pending'){
+        this._callHandlers()
+    }
+};
+$Promise.prototype._callHandlers = function (){
+    while (this._handlerGroups.length){
+        var handler = this._handlerGroups.shift()
+        if ( this._state === 'fulfilled'){
+            handler.successCb && handler.successCb(this._value)
+        }else{
+            handler.errorCb && handler.errorCb(this._value)
+        }
+    }
 }
 
 
